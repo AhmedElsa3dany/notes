@@ -11,6 +11,8 @@ class NoteTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.read<NotesProvider>();
+    final note = provider.notes[index];
+
     return GestureDetector(
       onTap: () async {
         final result = await Navigator.push(
@@ -24,79 +26,138 @@ class NoteTile extends StatelessWidget {
           provider.getAllNotes();
         }
       },
-      child: Container(
-        padding: EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Color(provider.notes[index].color),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          children: [
-            Checkbox(
-              value: provider.notes[index].isCompleted,
-              onChanged: (value) {
-                provider.toggleNoteCompletion(index);
-              },
+      child: AspectRatio(
+        aspectRatio: 480 / 200,
+        child: Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Container(
+            height: 120,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
             ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          provider.notes[index].title,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
+            child: Row(
+              children: [
+                // الشريط الملون على الشمال
+                Container(
+                  width: 8,
+                  margin:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: Color(note.color),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+
+                // محتوى النوت
+                Expanded(
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // السطر الأول: Checkbox + Title + Date
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Checkbox (نفس الفنكشن)
+                            SizedBox(
+                              width: 36,
+                              child: Center(
+                                child: Checkbox(
+                                  value: note.isCompleted,
+                                  onChanged: (value) {
+                                    provider.toggleNoteCompletion(index);
+                                  },
+                                ),
+                              ),
+                            ),
+
+                            // العنوان
+                            Expanded(
+                              child: Text(
+                                note.title,
+                                style: const TextStyle(
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 18,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+
+                            // التاريخ
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8.0),
+                              child: Text(
+                                note.createdAt.toString().split(' ')[0],
+                                style: TextStyle(color: Colors.grey[700]),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        // النص الفرعي (body)
+                        Expanded(
+                          child: Text(
+                            note.body,
+                            style: TextStyle(color: Colors.grey[800]),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                      ),
-                      Text(
-                        provider.notes[index].createdAt.toString().split(
-                              ' ',
-                            )[0],
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          provider.notes[index].body,
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          provider.deleteNote(index);
-                        },
-                        icon: Icon(Icons.delete, color: Colors.white),
-                      ),
-                    ],
-                  ),
-                  if (provider.notes[index].folder != null)
-                    Row(
-                      spacing: 5,
-                      children: [
-                        Icon(
-                          Icons.folder,
-                          color: Color(provider.notes[index].folder!.color),
-                        ),
-                        Text(
-                          provider.notes[index].folder!.label,
-                          style: TextStyle(color: Colors.white, fontSize: 18),
+
+                        const SizedBox(height: 6),
+
+                        // السطر الأخير: فولدر (لو موجود) + زر الحذف
+                        Row(
+                          children: [
+                            if (note.folder != null) ...[
+                              Icon(
+                                Icons.folder,
+                                color: Color(note.folder!.color),
+                                size: 20,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                note.folder!.label,
+                                style: const TextStyle(
+                                  color: Colors.black87,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const Spacer(),
+                            ] else
+                              const Spacer(),
+
+                            // زر الحذف بنفس الفنكشن
+                            IconButton(
+                              onPressed: () {
+                                provider.deleteNote(index);
+                              },
+                              icon: const Icon(Icons.delete_outline),
+                              color: Colors.redAccent,
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                ],
-              ),
+                  ),
+                ),
+
+                const SizedBox(width: 8),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
